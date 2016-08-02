@@ -1,0 +1,44 @@
+[_] TODO
+	[X] try and navigate to an fspec's first argument
+	[X] implement `::lookup-ref` spec & print it
+	[X] implement or spec, w/ arrow to sub-specs
+	[X] rename the render-X functions, they really just ... do what?
+	: They are functions that translate a spec s-expr into our simple GraphViz
+	: DSL. Would like to make this more general than GV (see below).
+	[X] add predicates to or spec
+	[X] add nested specs to or spec
+	: The recursive code in render-or-spec works if render-spec returns one
+	: node. We might need a slightly different interaction, where each of
+	: the generator functions product a map w/ drawables, and the name of the
+	: "head" drawable for that group.
+	[X] improve aesthetics of or spec
+	[X] color all named header nodes
+	[X] fix indentation
+	[X] make tuple-spec point to subspecs
+		[X] named
+		: Think we've hit a bigger issue here. In sequential things, we can't
+		: just drop an edge to the main spec node & back to the next thing. We
+		: need some sort of placeholder. Since we're using filled rectangles
+		: for the header nodes of named specs, lets use a regular rectangle,
+		: as the placeholder w/ a dotted line to the original.
+		[X] unnamed
+	[_] get rid of arrows on the dotted connections
+	: The direction of the reference isn't actually wrong, but we want them to
+	: focus on the arrows used to explain order.
+	[_] implement s/keys
+	: Added a circular "or" node
+	[_] Think about layers that can make this reusable w/ other than graphviz
+	: spec form -> graph -> graphviz
+	[X] improve aesthetics of tuple spec
+	than only sub specs (like `::identifer`)
+	[_] improve dispatch of case in `render-spec`
+	[_] think about state, use of the atom for ids - maybe write a test or two
+	to force focus on it
+	[_] finish implementing `render-tuple-or`, use labels, aesthetic
+	[X] find a better `namespaced-kw?`
+
+	[_] Experiences
+	* Couldn't see the complexity of graphviz initially. As I worked with it,
+	  I started evolving my language upward from graphviz, and my program
+	  downward toward a digraph layer, hopefully rendering agnostic.
+	* Specs made things a lot easier to work with, mistakes found early

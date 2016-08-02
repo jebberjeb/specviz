@@ -1,0 +1,27 @@
+graph {
+
+subgraph cluster_0 {
+
+xxx;
+
+subgraph cluster_1 {
+
+a;
+b;
+
+}
+
+subgraph cluster_2 {
+
+c;
+subgraph cluster_2a {
+c1;
+c2;
+}
+
+}
+
+}
+
+}
+
