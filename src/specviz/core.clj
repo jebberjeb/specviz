@@ -154,8 +154,7 @@
                        (let [nodes (spec->graphviz-nodes spec-form)]
                          (conj nodes (graphviz/cell-edge-to
                                        and-node (str "f" i) nodes)))))
-                   (rest spec-form))
-        ]
+                   (rest spec-form))]
     (with-name-graphviz-node spec-keyword (cons and-node branches))))
 
 (defn or-graphviz-node
