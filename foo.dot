@@ -1,27 +1,81 @@
-graph {
-
-subgraph cluster_0 {
-
-xxx;
-
-subgraph cluster_1 {
-
-a;
-b;
-
-}
-
-subgraph cluster_2 {
-
-c;
-subgraph cluster_2a {
-c1;
-c2;
-}
-
-}
-
-}
-
-}
-
+0: specvizexamplelookupref [shape=plaintext,label=<<table border="0" cellborder="1" cellpadding="3" cellspacing="0"><tr><td bgcolor="#CCCCCC" colspan="2">:specviz.example/lookup-ref  </td></tr><tr><td port="f0">( clojure.core/keyword?</td><td port="f1">clojure.core/any? )</td></tr></table>>,style=null,fillcolor="null", height=null,width=null
+1:           ];
+2: specvizexampletestcollof [shape=plaintext,label=<<table border="0" cellborder="1" cellpadding="3" cellspacing="0"><tr><td bgcolor="#CCCCCC" colspan="1">:specviz.example/test-coll-of (...)</td></tr><tr><td port="f0">:specviz.example/shape</td></tr><tr><td>...</td></tr></table>>,style=null,fillcolor="null", height=null,width=null
+3:           ];
+4: specvizexampletestcollof:f0->specvizexampleshape [label=""style=null,constraint=true,dir=null];
+5: specvizexampleshape [shape=box,label=":specviz.example/shape",style=filled,fillcolor="#CCCCCC", height=null,width=null
+6:           ];
+7: specvizexampleshape->node1 [label=""style=null,constraint=true,dir=null];
+8: node1 [shape=oval,label="#{:specviz.example/circle :specviz.example/square :specviz.example/triangle}",style=null,fillcolor="null", height=null,width=null
+9:           ];
+10: specvizexampleidentifier [shape=box,label=":specviz.example/identifier",style=filled,fillcolor="#CCCCCC", height=null,width=null
+11:           ];
+12: specvizexampleidentifier->node2 [label=""style=null,constraint=true,dir=null];
+13: node2 [shape=diamond,label="",style=null,fillcolor="null", height=null,width=null
+14:           ];
+15: node2->specvizexampleident [label=":ident"style=null,constraint=true,dir=null];
+16: node2->specvizexampleeid [label=":eid"style=null,constraint=true,dir=null];
+17: node2->specvizexamplelookupref [label=":lookup-ref"style=null,constraint=true,dir=null];
+18: specvizexampleident [shape=box,label=":specviz.example/ident",style=filled,fillcolor="#CCCCCC", height=null,width=null
+19:           ];
+20: specvizexampleident->node3 [label=""style=null,constraint=true,dir=null];
+21: node3 [shape=oval,label="clojure.core/keyword?",style=null,fillcolor="null", height=null,width=null
+22:           ];
+23: specvizexampleeid [shape=box,label=":specviz.example/eid",style=filled,fillcolor="#CCCCCC", height=null,width=null
+24:           ];
+25: specvizexampleeid->node4 [label=""style=null,constraint=true,dir=null];
+26: node4 [shape=oval,label="clojure.core/int?",style=null,fillcolor="null", height=null,width=null
+27:           ];
+28: specvizexampletuplewnestedspec [shape=plaintext,label=<<table border="0" cellborder="1" cellpadding="3" cellspacing="0"><tr><td bgcolor="#CCCCCC" colspan="3">:specviz.example/tuple-w-nested-spec  </td></tr><tr><td port="f0">( clojure.core/keyword?</td><td port="f1">clojure.spec/or</td><td port="f2">:specviz.example/ident )</td></tr></table>>,style=null,fillcolor="null", height=null,width=null
+29:           ];
+30: specvizexampletuplewnestedspec:f1->node5 [label=""style=null,constraint=true,dir=null];
+31: node5 [shape=diamond,label="",style=null,fillcolor="null", height=null,width=null
+32:           ];
+33: node5->node7 [label=":pos"style=null,constraint=true,dir=null];
+34: node7 [shape=oval,label="clojure.core/pos?",style=null,fillcolor="null", height=null,width=null
+35:           ];
+36: node5->node8 [label=":even"style=null,constraint=true,dir=null];
+37: node8 [shape=oval,label="clojure.core/even?",style=null,fillcolor="null", height=null,width=null
+38:           ];
+39: specvizexampletuplewnestedspec:f2->specvizexampleident [label=""style=null,constraint=true,dir=null];
+40: specvizexampletestand [shape=box,label=":specviz.example/test-and",style=filled,fillcolor="#CCCCCC", height=null,width=null
+41:           ];
+42: specvizexampletestand->node6 [label=""style=null,constraint=true,dir=null];
+43: node6 [shape=plaintext,label=<<table border="0" cellborder="1" cellpadding="3" cellspacing="0"><tr><td bgcolor="#666666" height="75" port="f0" width="12"></td></tr><tr><td bgcolor="#666666" height="75" port="f1" width="12"></td></tr></table>>,style=null,fillcolor="null", height=null,width=0.25
+44:           ];
+45: node6:f0->specvizexampleshape [label=""style=null,constraint=true,dir=null];
+46: node6:f1->node9 [label=""style=null,constraint=true,dir=null];
+47: node9 [shape=oval,label="clojure.core/string?",style=null,fillcolor="null", height=null,width=null
+48:           ];
+49: specvizexampletestmapof [shape=plaintext,label=<<table border="0" cellborder="1" cellpadding="3" cellspacing="0"><tr><td bgcolor="#CCCCCC" colspan="2">:specviz.example/test-map-of {...}</td></tr><tr><td port="f0">:specviz.example/shape</td><td port="f1">:specviz.example/test-or</td></tr><tr><td>...</td><td>...</td></tr></table>>,style=null,fillcolor="null", height=null,width=null
+50:           ];
+51: specvizexampletestmapof:f0->specvizexampleshape [label=""style=null,constraint=true,dir=null];
+52: specvizexampletestmapof:f1->specvizexampletestor [label=""style=null,constraint=true,dir=null];
+53: specvizexampletestor [shape=box,label=":specviz.example/test-or",style=filled,fillcolor="#CCCCCC", height=null,width=null
+54:           ];
+55: specvizexampletestor->node10 [label=""style=null,constraint=true,dir=null];
+56: node10 [shape=diamond,label="",style=null,fillcolor="null", height=null,width=null
+57:           ];
+58: node10->node11 [label=":foo"style=null,constraint=true,dir=null];
+59: node11 [shape=oval,label="clojure.core/keyword?",style=null,fillcolor="null", height=null,width=null
+60:           ];
+61: node10->specvizexampleeid [label=":bar"style=null,constraint=true,dir=null];
+62: node10->node12 [label=":baz"style=null,constraint=true,dir=null];
+63: node12 [shape=diamond,label="",style=null,fillcolor="null", height=null,width=null
+64:           ];
+65: node12->node14 [label=":pos"style=null,constraint=true,dir=null];
+66: node14 [shape=oval,label="clojure.core/pos?",style=null,fillcolor="null", height=null,width=null
+67:           ];
+68: node12->node15 [label=":neg"style=null,constraint=true,dir=null];
+69: node15 [shape=oval,label="clojure.core/neg?",style=null,fillcolor="null", height=null,width=null
+70:           ];
+71: node12->node16 [label=":zero"style=null,constraint=true,dir=null];
+72: node16 [shape=oval,label="clojure.core/zero?",style=null,fillcolor="null", height=null,width=null
+73:           ];
+74: node10->node13 [label=":qux"style=null,constraint=true,dir=null];
+75: node13 [shape=plaintext,label=<<table border="0" cellborder="1" cellpadding="3" cellspacing="0"><tr><td bgcolor="#CCCCCC" colspan="2">   </td></tr><tr><td port="f0">( clojure.core/keyword?</td><td port="f1">clojure.core/string? )</td></tr></table>>,style=null,fillcolor="null", height=null,width=null
+76:           ];
+77: node10->node17 [label=":qul"style=null,constraint=true,dir=null];
+78: node17 [shape=plaintext,label=<<table border="0" cellborder="1" cellpadding="3" cellspacing="0"><tr><td bgcolor="#CCCCCC" colspan="1">   </td></tr><tr><td port="f0">:req</td></tr><tr><td port="f1">:specviz.example/shape</td></tr><tr><td port="f2">:specviz.example/foo</td></tr></table>>,style=null,fillcolor="null", height=null,width=null
+79:           ];
+80: node17:f1->specvizexampleshape [label=""style=null,constraint=true,dir=null];
