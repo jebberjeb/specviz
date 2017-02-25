@@ -1,0 +1,29 @@
+0: specvizgraphvizdrawable [shape=box,label=":specviz.graphviz/drawable",style=filled,fillcolor="#CCCCCC", height=null,width=null
+1:           ];
+2: specvizgraphvizdrawable->node22 [label=""style=null,constraint=true,dir=null];
+3: node22 [shape=diamond,label="",style=null,fillcolor="null", height=null,width=null
+4:           ];
+5: node22->specvizgraphvizconnection [label=":connection"style=null,constraint=true,dir=null];
+6: node22->specvizgraphviznode [label=":node"style=null,constraint=true,dir=null];
+7: specvizgraphvizconnection [shape=plaintext,label=<<table border="0" cellborder="1" cellpadding="3" cellspacing="0"><tr><td bgcolor="#CCCCCC" colspan="1">:specviz.graphviz/connection  </td></tr><tr><td port="f0">:req</td></tr><tr><td port="f1">:specviz.graphviz/to</td></tr><tr><td port="f2">:specviz.graphviz/from</td></tr><tr><td port="f3">:opt</td></tr><tr><td port="f4">:specviz.graphviz/label</td></tr><tr><td port="f5">:specviz.graphviz/line-style</td></tr><tr><td port="f6">:specviz.graphviz/constraint</td></tr><tr><td port="f7">:specviz.graphviz/line-direction</td></tr></table>>,style=null,fillcolor="null", height=null,width=null
+8:           ];
+9: specvizgraphvizconnection:f5->specvizgraphvizlinestyle [label=""style=null,constraint=true,dir=null];
+10: specvizgraphvizconnection:f7->specvizgraphvizlinedirection [label=""style=null,constraint=true,dir=null];
+11: specvizgraphvizlinestyle [shape=box,label=":specviz.graphviz/line-style",style=filled,fillcolor="#CCCCCC", height=null,width=null
+12:           ];
+13: specvizgraphvizlinestyle->node23 [label=""style=null,constraint=true,dir=null];
+14: node23 [shape=oval,label="#{:solid :dotted}",style=null,fillcolor="null", height=null,width=null
+15:           ];
+16: specvizgraphvizlinedirection [shape=box,label=":specviz.graphviz/line-direction",style=filled,fillcolor="#CCCCCC", height=null,width=null
+17:           ];
+18: specvizgraphvizlinedirection->node24 [label=""style=null,constraint=true,dir=null];
+19: node24 [shape=oval,label="#{:forward :back :both :none}",style=null,fillcolor="null", height=null,width=null
+20:           ];
+21: specvizgraphviznode [shape=plaintext,label=<<table border="0" cellborder="1" cellpadding="3" cellspacing="0"><tr><td bgcolor="#CCCCCC" colspan="1">:specviz.graphviz/node  </td></tr><tr><td port="f0">:req</td></tr><tr><td port="f1">:specviz.graphviz/name</td></tr><tr><td port="f2">:specviz.graphviz/label</td></tr><tr><td port="f3">:opt</td></tr><tr><td port="f4">:specviz.graphviz/shape</td></tr><tr><td port="f5">:specviz.graphviz/fillcolor</td></tr><tr><td port="f6">:specviz.graphviz/style</td></tr><tr><td port="f7">:specviz.graphviz/height</td></tr><tr><td port="f8">:specviz.graphviz/width</td></tr></table>>,style=null,fillcolor="null", height=null,width=null
+22:           ];
+23: specvizgraphviznode:f4->specvizgraphvizshape [label=""style=null,constraint=true,dir=null];
+24: specvizgraphvizshape [shape=box,label=":specviz.graphviz/shape",style=filled,fillcolor="#CCCCCC", height=null,width=null
+25:           ];
+26: specvizgraphvizshape->node25 [label=""style=null,constraint=true,dir=null];
+27: node25 [shape=oval,label="#{diamond record oval box plaintext circle}",style=null,fillcolor="null", height=null,width=null
+28:           ];
