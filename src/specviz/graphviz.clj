@@ -138,7 +138,7 @@
      ::to (cond (string? to) to
                 (coll? to) (get-root-name to))}))
 
-;; dot executable wrapper functions.
+;; *** dot executable wrapper functions ***
 
 (defn generate-image!
   "Generates two files (1) <filename>.dot containing the dot string, and
