@@ -29,23 +29,23 @@
   graphviz has leaked through here -- the port attribute, which is used
   for connectiions.
 
-  `row-opts` contains `:height, :width, :bgcolor`
+  `cell-attributes` a map of the properties to be used by each cell
+                    ex `{:bgcolor \"#cccccc\" :height 10 :width 10}`
   "
-  [values row-opts]
+  [values cell-attributes]
   `[:tr ~@(map-indexed
             (fn [i v] [:td
                        (merge {:port (port i)}
-                              row-opts)
+                              cell-attributes)
                        (str v)])
             values)])
 
 (defn col
   "Like `row`, but creates a row for each value with one cell."
-  [values row-opts]
+  [values cell-attributes]
   (vec (map-indexed
          (fn [i v] [:tr [:td
-                         (merge {:port (port i)}
-                                row-opts)
+                         (merge {:port (port i)} cell-attributes)
                          (str v)]])
          values)))
 
@@ -61,5 +61,6 @@
     ~@rows])
 
 (defn html
+  "Generate the html string for the table data."
   [table]
   (html/html table))

@@ -1,13 +1,24 @@
 (ns specviz.graphviz
-  "Graphviz stuff."
+  "Tools to work with graphviz data.
+
+  Graphviz data consists of two primary elements, nodes and connections. A
+  graphviz document consists of a sequence of these elements in which order
+  can be important.
+
+  This namespace contains the following:
+
+    - specs for graphviz data
+    - functions to convert graphviz data into a graphviz dot string
+    - a function to render a graphviz dot string into a png image
+  "
   (:require
     [clojure.java.shell :as sh]
     [clojure.spec :as s]
     [clojure.string :as string]
+    [specviz.spec :as spec]
     [specviz.util :as util]))
 
-(def h1-color "#CCCCCC")
-(def h2-color "#EEEEEE")
+;; *** Graphviz specs ***
 
 (s/def ::shape #{"record" "box" "oval" "plaintext" "circle" "diamond"})
 (s/def ::connection (s/keys :req [::to ::from]
@@ -22,30 +33,10 @@
 (s/def ::line-style #{:dotted :solid})
 (s/def ::line-direction #{:none :both :forward :back})
 
-(let [id (atom 0)]
-  (defn next-id
-    []
-    (swap! id inc)
-    @id))
+;; *** graphviz data -> dot ***
 
-(defn next-name
-  []
-  (format "node%s" (next-id)))
-
-(defn wrap-quotes
-  [s]
-  (format "\"%s\"" s))
-
-(defn clean-name
-  "Turn the spec name (a namespaced keyword) into a GraphViz friendly name"
-  [spec-name]
-  (when spec-name
-    (-> (apply str (namespace spec-name) (name spec-name))
-        (string/replace ">" "")
-        (string/replace "." "")
-        (string/replace ":" "")
-        (string/replace "-" "")
-        (string/replace "?" ""))))
+;; `render-graphviz` generates the graphviz dot string for a graphviz element
+(defmulti render-graphviz first)
 
 (defmulti render-graphviz-node ::shape)
 
@@ -67,9 +58,7 @@
 
 (defmethod render-graphviz-node :default
   [node]
-  (render-graphviz-node* (update node ::label wrap-quotes)))
-
-(defmulti render-graphviz first)
+  (render-graphviz-node* (update node ::label #(format "\"%s\"" %))))
 
 (defmethod render-graphviz :node
   [[_ node]]
@@ -77,7 +66,7 @@
 
 (defmethod render-graphviz :connection
   [[_ {:keys [::to ::from ::line-style ::constraint ::line-direction ::label]}]]
-  (format "%s->%s [label=\"%s\"style=%s,constraint=%s,dir=%s];\n"
+  (format "%s->%s [label=\"%s\",style=%s,constraint=%s,dir=%s];\n"
           from
           to
           (or label "")
@@ -85,35 +74,83 @@
           (if (nil? constraint) true constraint)
           (when line-direction (name line-direction))))
 
+(defn dot-string
+  "Generate the graphviz dot string for a sequence of graphviz element
+  (connection & node) maps."
+  [elements]
+  (->> elements
+       (map (partial spec/conform-or-throw ::drawable))
+       (map render-graphviz)
+       (apply str)))
+
+;; *** graphviz utility funcitons ***
+
+(let [id (atom 0)]
+  (defn- next-id
+    []
+    (swap! id inc)
+    @id))
+
+(defn next-name
+  "Returns a unique name for use with a graphviz node."
+  []
+  (format "node%s" (next-id)))
+
+(defn clean-name
+  "Turn the qualified keyword into a graphviz friendly name"
+  [qkw]
+  (when qkw
+    (-> (apply str (namespace qkw) (name qkw))
+        (string/replace ">" "")
+        (string/replace "." "")
+        (string/replace ":" "")
+        (string/replace "-" "")
+        (string/replace "?" ""))))
+
 (defn port
   "Returns a string representing the 'port' id, for a cell in a graphviz table."
   [index]
   (format "f%s" index))
 
 (defn get-root-name
-  "Gets the name of the tree's root graphviz-node."
+  "Gets the name of the tree's root graphviz node."
   [nodes]
   (::name (util/first* nodes)))
 
-(defn cell-edge-to
-  "Make an edge from a cell to something."
-  ([from-node from-port to]
-   (cell-edge-to from-node from-port to ""))
-  ([from-node from-port to label]
-   (let [from-node-name (::name from-node)
-         from (if from-port
-                (str from-node-name ":" from-port)
-                from-node-name)]
-     {::from from
-      ::label label
-      ::to (cond (string? to) to
-                 (coll? to) (get-root-name to))})))
+(defn connect
+  "Make a connection from one node to another node.
 
-;; dot wrapper functions.
+  `from` the origin node (map)
+
+  `from-port` (optional) if `from-node` is a table, the id (string) of a port
+              (cell) of the node, from which the connection should originate
+
+  `to` the destination of the connection, can be a node (map), sequence of
+       nodes, or the name of a node (string)
+
+  `label` the connection's label"
+  [& {:keys [from from-port to label]}]
+  (assert (and from to))
+  (let [from-str (if from-port
+                   (str (::name from) ":" from-port)
+                   (::name from))]
+    {::from from-str
+     ::label label
+     ::to (cond (string? to) to
+                (coll? to) (get-root-name to))}))
+
+;; dot executable wrapper functions.
 
 (defn generate-image!
+  "Generates two files (1) <filename>.dot containing the dot string, and
+  <filename>.png containing the graphviz rendering as a png file, using the
+  `dot` executable binary."
   [dot-string filename]
-  (spit (str filename ".dot") (util/add-line-no dot-string))
-  (sh/sh "dot" "-Tpng" (str "-o" filename ".png")
-         :in
-         (str "digraph {\nrankdir=LR;\n" dot-string "\n}")))
+  (let [dot-string' (str "digraph {\nrankdir=LR;\n" dot-string "\n}")]
+    (spit (str filename ".dot") (util/add-line-no dot-string'))
+    (sh/sh "dot" "-Tpng" (str "-o" filename ".png")
+           :in dot-string')))
+
+;; TODO Move these.
+(def h1-color "#CCCCCC")
+(def h2-color "#EEEEEE")

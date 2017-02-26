@@ -5,14 +5,16 @@
     [clojure.spec :as s]
     [clojure.string :as string]
     [specviz.html :as html]
-    [specviz.util :as util]
     [specviz.graphviz
      :as graphviz
-     :refer [next-name clean-name render-graphviz h1-color h2-color]]))
+     :refer [next-name clean-name render-graphviz h1-color h2-color]]
+    [specviz.spec :as spec]
+    [specviz.util :as util]))
 
-;; Utilities which use `specviz.html` to construct table representations of
-;; spec data, and render it a an html string in order to be used as the
-;; label of a graphviz plaintext node.
+;; *** Table Nodes ***
+;; Use `specviz.html` to construct table representations of spec data, and
+;; render it a an html string in order to be used as the label of a graphviz
+;; plaintext node.
 
 (defn- specs->rows
   "Returns a single html row with one cell for each spec."
@@ -35,11 +37,9 @@
 
 (defn- specs->graphviz-table-node
   "Turn the spec parts into row data for rendering a graphviz table."
-  [specs spec-keyword node-name vertical? {:keys [::graphviz/table-opts
-                                                  ::graphviz/ellipses-row
-                                                  ::graphviz/title-suffix
-                                                  ::graphviz/row-prefix
-                                                  ::graphviz/row-suffix]}]
+  [specs spec-keyword node-name vertical? {:keys [table-opts ellipses-row
+                                                  title-suffix row-prefix
+                                                  row-suffix]}]
   (let [title (str (or spec-keyword " ") " " (or title-suffix " "))
 
         ;; Create html rows from the specs, and format them.
@@ -58,38 +58,32 @@
      ::graphviz/shape "plaintext"
      ::graphviz/label (table->graphviz-label table)}))
 
-;; Other utilities to convert specs into graphviz node maps. These functions
-;; could potentially be slightly renamed and moved to `spec.graphviz`.
+;; *** spec -> graphviz ***
+;; Convert specs into graphviz elements.
 
-(defn spec-keyword-graphviz-node
-  [spec-keyword]
-  (when spec-keyword
-    {::graphviz/name (clean-name spec-keyword)
-     ::graphviz/label spec-keyword
-     ::graphviz/shape "box"
-     ::graphviz/style "filled"
-     ::graphviz/fillcolor h1-color}))
-
-(defn with-header-graphviz-node
+(defn with-name-graphviz-node
   "If the spec-keyword is not nil, add a graphviz-node indicating the spec's name."
-  [header-node-fn spec-keyword nodes]
+  [spec-keyword nodes]
   (concat
-    (when-let [node (header-node-fn spec-keyword)]
-      [node
-       {::graphviz/from (::graphviz/name node)
-        ::graphviz/to (::graphviz/name (first nodes))}])
+    (when spec-keyword
+      (let [node {::graphviz/name (clean-name spec-keyword)
+                  ::graphviz/label spec-keyword
+                  ::graphviz/shape "box"
+                  ::graphviz/style "filled"
+                  ::graphviz/fillcolor h1-color}]
+        [node
+         {::graphviz/from (::graphviz/name node)
+          ::graphviz/to (::graphviz/name (first nodes))}]))
     nodes))
 
-(def with-name-graphviz-node (partial with-header-graphviz-node spec-keyword-graphviz-node))
-
-;; Core spec -> graphviz conversion code. The `spec->graphviz-nodes*`
+;; Core spec -> graphviz conversion code. The `spec->graphviz-elements*`
 ;; multimethod is implemented for each of the supported spec expression types.
-;; `spec->graphviz-nodes*` returns a collection of  graphviz drawables
+;; `spec->graphviz-elements*` returns a collection of  graphviz drawables
 ;; (nodes & connections). In most cases, it behaves recursively.
 
-(declare spec->graphviz-nodes)
+(declare spec->graphviz-elements)
 
-(defmulti spec->graphviz-nodes* (fn [spec-form spec-keyword]
+(defmulti spec->graphviz-elements* (fn [spec-form spec-keyword]
                                   (when (sequential? spec-form)
                                     (first spec-form))))
 
@@ -98,7 +92,7 @@
                 :parts (s/* (s/cat :type #{:req :opt}
                                    :kws (s/every keyword? :kind vector?)))))
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/keys
+(defmethod spec->graphviz-elements* 'clojure.spec/keys
   [spec-form spec-keyword]
   (let [node-name (or (clean-name spec-keyword) (next-name))
         parts (:parts (s/conform ::keys spec-form))
@@ -120,10 +114,10 @@
         edges (map-indexed
                 ;; Similarly, when we introduce h2-colored formatting above,
                 ;; we may need to adjust this so that port indexes line up.
-                (fn [i kw] (when (util/spec-keyword? kw)
-                             (graphviz/cell-edge-to table-node
-                                                    (graphviz/port i)
-                                                    (clean-name kw))))
+                (fn [i kw] (when (spec/registered? kw)
+                             (graphviz/connect :from table-node
+                                               :from-port (graphviz/port i)
+                                               :to (clean-name kw))))
                 types-and-kws)]
     (conj edges table-node)))
 
@@ -143,17 +137,19 @@
                           nil))
      ::graphviz/shape "plaintext"}))
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/and
+(defmethod spec->graphviz-elements* 'clojure.spec/and
   [spec-form spec-keyword]
   (let [and-node (and-graphviz-node (next-name) (count (rest spec-form)))
         branches (map-indexed
                    (fn [i spec-form]
                      (if (qualified-keyword? spec-form)
-                       (graphviz/cell-edge-to
-                         and-node (str "f" i) (clean-name spec-form))
-                       (let [nodes (spec->graphviz-nodes spec-form)]
-                         (conj nodes (graphviz/cell-edge-to
-                                       and-node (str "f" i) nodes)))))
+                       (graphviz/connect :from and-node
+                                         :from-port (str "f" i)
+                                         :to (clean-name spec-form))
+                       (let [nodes (spec->graphviz-elements spec-form)]
+                         (conj nodes (graphviz/connect :from and-node
+                                                       :from-port (str "f" i)
+                                                       :to nodes)))))
                    (rest spec-form))]
     (with-name-graphviz-node spec-keyword (cons and-node branches))))
 
@@ -164,21 +160,23 @@
    ::graphviz/label ""
    ::graphviz/shape "diamond"})
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/or
+(defmethod spec->graphviz-elements* 'clojure.spec/or
   [spec-form spec-keyword]
   (let [or-node (or-graphviz-node)
         or-pairs (->> spec-form rest (partition 2))
         or-branches (map (fn [[label-kw spec-form]]
                            (if (qualified-keyword? spec-form)
-                             (graphviz/cell-edge-to
-                               or-node nil (clean-name spec-form) label-kw)
-                             (let [nodes (spec->graphviz-nodes spec-form)]
-                               (conj nodes (graphviz/cell-edge-to
-                                             or-node nil nodes label-kw)))))
+                             (graphviz/connect :from or-node
+                                               :to (clean-name spec-form)
+                                               :label label-kw)
+                             (let [nodes (spec->graphviz-elements spec-form)]
+                               (conj nodes (graphviz/connect :from or-node
+                                                             :to nodes
+                                                             :label label-kw)))))
                          or-pairs)]
     (with-name-graphviz-node spec-keyword (cons or-node or-branches))))
 
-(defn tabular-spec->graphviz-nodes*
+(defn tabular-spec->graphviz-elements*
   "Returns a collection of graphviz nodes used to display a tabular entity.
 
   `spec-parts` are the pieces of a tabular spec. For example, given the spec
@@ -187,9 +185,8 @@
 
   `spec-keyword` the registered keyword of the spec, if it has one.
 
-  `table-opts` optionally includes ::graphviz/table-opts,
-               ::graphviz/ellipses-row, ::graphviz/title-suffix,
-               ::graphviz/row-prefix, ::graphviz/row-suffix"
+  `table-opts` optionally includes :table-opts, :ellipses-row, :title-suffix,
+               :row-prefix, :row-suffix"
   [spec-parts spec-keyword & table-opts]
   (let [node-name (or (clean-name spec-keyword) (next-name))
         table-node (specs->graphviz-table-node
@@ -199,17 +196,19 @@
                           (cond
                             ;; For a literal, generate the nodes & connection
                             ;; node.
-                            (util/spec-literal? spec)
-                            (let [part-nodes (spec->graphviz-nodes spec)]
+                            (spec/literal? spec)
+                            (let [part-nodes (spec->graphviz-elements spec)]
                               (conj part-nodes
-                                    (graphviz/cell-edge-to
-                                      table-node port part-nodes)))
+                                    (graphviz/connect :from table-node
+                                                      :from-port port
+                                                      :to part-nodes)))
 
                             ;; For an existing spec keyword, only generate the
                             ;; connection node.
-                            (util/spec-keyword? spec)
-                            [(graphviz/cell-edge-to
-                               table-node port (clean-name spec))]
+                            (spec/registered? spec)
+                            [(graphviz/connect :from table-node
+                                               :from-port port
+                                               :to (clean-name spec))]
 
                             ;; Otherwise, if this is a predicate function, or a
                             ;; set for example, don't generate any nodes. We'll
@@ -219,54 +218,54 @@
                       (range))]
     (conj nodes table-node)))
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/every
+(defmethod spec->graphviz-elements* 'clojure.spec/every
   [spec-form spec-keyword]
   (if (not (coll? (second spec-form)))
     ;; TODO - factor this!
-    (tabular-spec->graphviz-nodes* [(second spec-form)]
+    (tabular-spec->graphviz-elements* [(second spec-form)]
                           spec-keyword
-                          ::graphviz/table-opts {::cellspacing 6}
-                          ::graphviz/ellipses-row true
-                          ::graphviz/title-suffix "(...)")
-    (tabular-spec->graphviz-nodes* (rest (second spec-form))
+                          :table-opts {::cellspacing 6}
+                          :ellipses-row true
+                          :title-suffix "(...)")
+    (tabular-spec->graphviz-elements* (rest (second spec-form))
                           spec-keyword
-                          ::graphviz/table-opts {::cellspacing 6}
-                          ::graphviz/ellipses-row true
-                          ::graphviz/title-suffix "{...}")))
+                          :table-opts {::cellspacing 6}
+                          :ellipses-row true
+                          :title-suffix "{...}")))
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/tuple
+(defmethod spec->graphviz-elements* 'clojure.spec/tuple
   [spec-form spec-keyword]
-  (tabular-spec->graphviz-nodes* (rest spec-form) spec-keyword
-                        ::graphviz/row-suffix " )"
-                        ::graphviz/row-prefix "( "))
+  (tabular-spec->graphviz-elements* (rest spec-form) spec-keyword
+                        :row-suffix " )"
+                        :row-prefix "( "))
 
 ;; Unsupported
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/multi-spec
+(defmethod spec->graphviz-elements* 'clojure.spec/multi-spec
   [spec-form spec-keyword]
   nil)
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/fspec
+(defmethod spec->graphviz-elements* 'clojure.spec/fspec
   [spec-form spec-keyword]
   nil)
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/*
+(defmethod spec->graphviz-elements* 'clojure.spec/*
   [spec-form spec-keyword]
   nil)
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/&
+(defmethod spec->graphviz-elements* 'clojure.spec/&
   [spec-form spec-keyword]
   nil)
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/cat
+(defmethod spec->graphviz-elements* 'clojure.spec/cat
   [spec-form spec-keyword]
   nil)
 
-(defmethod spec->graphviz-nodes* 'clojure.spec/merge
+(defmethod spec->graphviz-elements* 'clojure.spec/merge
   [spec-form spec-keyword]
   nil)
 
-(defmethod spec->graphviz-nodes* :default
+(defmethod spec->graphviz-elements* :default
   [spec-form spec-keyword]
   (with-name-graphviz-node
     spec-keyword
@@ -274,14 +273,11 @@
       ::graphviz/label (print-str spec-form)
       ::graphviz/shape "oval"}]))
 
-(defn spec->graphviz-nodes
-  ([spec-form] (spec->graphviz-nodes spec-form nil))
+(defn spec->graphviz-elements
+  "Return a sequence of graphviz elements used to render the spec."
+  ([spec-form] (spec->graphviz-elements spec-form nil))
   ([spec-form spec-keyword]
-   (spec->graphviz-nodes* spec-form spec-keyword)))
-
-(defn- contains-any?
-  [string excludes]
-  (some #(.contains string %) excludes))
+   (spec->graphviz-elements* spec-form spec-keyword)))
 
 (defn diagram
   "Generate a diagram of the specs.
@@ -308,32 +304,29 @@
         ;; the root namespace.
         starting-specs (if (qualified-keyword? root)
                          [root]
-                         (keep
-                           (fn [[k v]]
-                             (when (= (symbol (namespace k)) root)
-                               k))
-                           (rest (s/registry))))
+                         (->> (s/registry)
+                              (map key)
+                              (filter #(= root (symbol (namespace %))))))
 
         ;; Get nested specs for all of the starting specs.
-        nested-specs (distinct (mapcat util/nested-specs starting-specs))
+        nested-specs (distinct (mapcat spec/depends-on starting-specs))
 
         ;; Filter the excluded specs.
-        filtered-specs (remove (fn [spec] (contains-any?
-                                            (namespace spec)
+        filtered-specs (remove (fn [spec] (some
+                                            #(.contains (namespace spec) %)
                                             excluded-namespaces))
                                nested-specs)
 
-        ;; Generate the graphviz dot document.
+        ;; Generate the graphviz dot string.
         dot (->> filtered-specs
-                 (map (fn [spec-kw] (spec->graphviz-nodes (s/form (s/get-spec spec-kw)) spec-kw)))
+                 (map (fn [spec-kw] (spec->graphviz-elements
+                                      (s/form (s/get-spec spec-kw)) spec-kw)))
                  flatten
                  (remove nil?)
-                 (map (partial util/conform-or-throw ::graphviz/drawable))
-                 (map render-graphviz)
-                 (apply str))]
+                 graphviz/dot-string)]
 
     (graphviz/generate-image! dot filename)))
 
 (comment
-  (diagram :specviz.graphviz/drawable nil "foo")
+  (diagram :specviz.graphviz/drawable nil "bar")
   (diagram 'specviz.example nil "foo"))
