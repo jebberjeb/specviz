@@ -29,7 +29,6 @@
                             ::height ::width]))
 (s/def ::drawable (s/or :connection ::connection
                         :node ::node))
-
 (s/def ::line-style #{:dotted :solid})
 (s/def ::line-direction #{:none :both :forward :back})
 
@@ -154,3 +153,15 @@
 ;; TODO Move these.
 (def h1-color "#CCCCCC")
 (def h2-color "#EEEEEE")
+
+(comment
+  (let [data [{::name "foo"
+               ::label "Foo"
+               ::shape "box"}
+              {::name "bar"
+               ::label "Bar"
+               ::shape "diamond"}
+              {::from "foo"
+               ::to "bar"
+               ::label "baz"}]]
+    (generate-image! (dot-string data) "baz")))
