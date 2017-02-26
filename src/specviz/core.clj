@@ -1,5 +1,5 @@
 (ns specviz.core
-  "Convert specs into graphviz node maps."
+  "Generate diagrams from specs."
   (:require
     [clojure.java.shell :as sh]
     [clojure.spec :as s]
