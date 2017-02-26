@@ -59,9 +59,9 @@
      ::graphviz/label (table->graphviz-label table)}))
 
 ;; *** spec -> graphviz ***
-;; Convert specs into graphviz elements.
+;; Core spec -> graphviz conversion code.
 
-(defn with-name-graphviz-node
+ (defn- with-name-graphviz-node
   "If the spec-keyword is not nil, add a graphviz-node indicating the spec's name."
   [spec-keyword nodes]
   (concat
@@ -76,12 +76,13 @@
           ::graphviz/to (::graphviz/name (first nodes))}]))
     nodes))
 
-;; Core spec -> graphviz conversion code. The `spec->graphviz-elements*`
-;; multimethod is implemented for each of the supported spec expression types.
-;; `spec->graphviz-elements*` returns a collection of  graphviz drawables
-;; (nodes & connections). In most cases, it behaves recursively.
 
 (declare spec->graphviz-elements)
+
+;; The `spec->graphviz-elements*` multimethod is implemented for each of the
+;; supported spec expression types.  `spec->graphviz-elements*` returns a
+;; collection of  graphviz drawables (nodes & connections). In most cases, it
+;; behaves recursively.
 
 (defmulti spec->graphviz-elements* (fn [spec-form spec-keyword]
                                   (when (sequential? spec-form)
@@ -121,7 +122,7 @@
                 types-and-kws)]
     (conj edges table-node)))
 
-(defn and-graphviz-node
+(defn- and-graphviz-node
   "Create the vertical 'fork' node, used to represent `s/and` specs."
   [node-name fork-count]
   (let [height (/ 150 fork-count)]
@@ -153,7 +154,7 @@
                    (rest spec-form))]
     (with-name-graphviz-node spec-keyword (cons and-node branches))))
 
-(defn or-graphviz-node
+(defn- or-graphviz-node
   "Create a diamond node, used to represent `s/or` specs."
   []
   {::graphviz/name (next-name)
@@ -176,7 +177,7 @@
                          or-pairs)]
     (with-name-graphviz-node spec-keyword (cons or-node or-branches))))
 
-(defn tabular-spec->graphviz-elements*
+(defn- tabular-spec->graphviz-elements*
   "Returns a collection of graphviz nodes used to display a tabular entity.
 
   `spec-parts` are the pieces of a tabular spec. For example, given the spec
@@ -273,11 +274,13 @@
       ::graphviz/label (print-str spec-form)
       ::graphviz/shape "oval"}]))
 
-(defn spec->graphviz-elements
+(defn- spec->graphviz-elements
   "Return a sequence of graphviz elements used to render the spec."
   ([spec-form] (spec->graphviz-elements spec-form nil))
   ([spec-form spec-keyword]
    (spec->graphviz-elements* spec-form spec-keyword)))
+
+;; *** Diagram ***
 
 (defn diagram
   "Generate a diagram of the specs.
