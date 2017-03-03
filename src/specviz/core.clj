@@ -266,13 +266,29 @@
   [spec-form spec-keyword]
   nil)
 
-(defmethod spec->graphviz-elements* :default
+(defn set-spec->graphviz-elements
+  [spec-form spec-keyword]
+  (with-name-graphviz-node
+    spec-keyword
+    [{::graphviz/name (next-name)
+      ::graphviz/label (->> spec-form
+                            (string/join "\\n")
+                            (format "#{%s}"))
+      ::graphviz/shape "oval"}]))
+
+(defn other-spec->graphviz-elements
   [spec-form spec-keyword]
   (with-name-graphviz-node
     spec-keyword
     [{::graphviz/name (next-name)
       ::graphviz/label (print-str spec-form)
       ::graphviz/shape "oval"}]))
+
+(defmethod spec->graphviz-elements* :default
+  [spec-form spec-keyword]
+  ((if (set? spec-form)
+     set-spec->graphviz-elements
+     other-spec->graphviz-elements) spec-form spec-keyword))
 
 (defn- spec->graphviz-elements
   "Return a sequence of graphviz elements used to render the spec."
@@ -317,7 +333,8 @@
         ;; Filter the excluded specs.
         filtered-specs (remove (fn [spec] (some
                                             #(.contains (namespace spec) %)
-                                            excluded-namespaces))
+                                            (conj excluded-namespaces
+                                                  "clojure.core")))
                                nested-specs)
 
         ;; Generate the graphviz dot string.
