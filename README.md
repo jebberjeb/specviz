@@ -52,6 +52,7 @@ Regex specs are currently in development.
 * Fix SOE due to recursive specs
 * Render `s/nilable?` using `s/or :nil nil? :not-nil ...`
 * Render map, set, vector literals using a table
+* Always filter out `clojure.core` specs
 
 ## License
 
