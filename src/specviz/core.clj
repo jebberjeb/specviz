@@ -90,7 +90,7 @@
 
 (s/def ::keys (s/cat
                 :keys #{'clojure.spec/keys}
-                :parts (s/* (s/cat :type #{:req :opt}
+                :parts (s/* (s/cat :type #{:req :opt :req-un :opt-un}
                                    :kws (s/every keyword? :kind vector?)))))
 
 (defmethod spec->graphviz-elements* 'clojure.spec/keys
@@ -239,6 +239,12 @@
   (tabular-spec->graphviz-elements* (rest spec-form) spec-keyword
                         :row-suffix " )"
                         :row-prefix "( "))
+
+(defmethod spec->graphviz-elements* 'clojure.spec/nilable
+  [spec-form spec-keyword]
+  (spec->graphviz-elements `(s/or :nil nil?
+                                  :not-nil ~@(rest spec-form))
+                           spec-keyword))
 
 ;; Unsupported
 
