@@ -20,7 +20,8 @@
 
 ;; *** Graphviz specs ***
 
-(s/def ::shape #{"record" "box" "oval" "plaintext" "circle" "diamond"})
+(s/def ::shape #{"record" "box" "oval" "plaintext" "circle" "diamond"
+                 "trapezium" "square" "folder"})
 (s/def ::connection (s/keys :req [::to ::from]
                             :opt [::label ::line-style ::constraint
                                   ::line-direction]))

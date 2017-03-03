@@ -18,3 +18,11 @@
   "Returns the first item in x, if x is sequential, else x."
   [x]
   (if (sequential? x) (first x) x))
+
+(defn escape-quotes
+  [s] (string/replace s "\"" "\\\""))
+
+(defn strip-core
+  "Remove 'clojure.core/' prefix from a string."
+  [s]
+  (string/replace s "clojure.core/" ""))

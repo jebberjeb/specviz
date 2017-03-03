@@ -1,6 +1,7 @@
 (ns specviz.html
   "Functions to work with hiccup data."
   (:require
+    [clojure.string :as string]
     [hiccup.core :as html]
     [specviz.graphviz :refer [h1-color port]]))
 
@@ -24,6 +25,11 @@
   [rows]
   `[:tr ~@(repeat (dec (count (first rows))) [:td "..."])])
 
+(defn escape
+  [s]
+  (-> s
+      (string/replace ">" "&gt;")))
+
 (defn row
   "Returns a single row with one cell for each spec. One small detail of
   graphviz has leaked through here -- the port attribute, which is used
@@ -37,7 +43,7 @@
             (fn [i v] [:td
                        (merge {:port (port i)}
                               cell-attributes)
-                       (str v)])
+                       (escape (str v))])
             values)])
 
 (defn col
@@ -46,17 +52,17 @@
   (vec (map-indexed
          (fn [i v] [:tr [:td
                          (merge {:port (port i)} cell-attributes)
-                         (str v)]])
+                         (escape (str v))]])
          values)))
 
 (defn table
   "Returns a table with the `rows` and `table-opts`."
   [title rows table-opts]
   `[:table
-    {:border 0
+    {:border ~(or (:border table-opts) 0)
      :cellspacing ~(or (:cellspacing table-opts) 0)
      :cellpadding 3
-     :cellborder 1}
+     :cellborder ~(or (:cellborder table-opts) 1)}
     ~(when title (header-row title rows))
     ~@rows])
 

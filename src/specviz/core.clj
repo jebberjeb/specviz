@@ -19,7 +19,8 @@
 (defn- specs->rows
   "Returns a single html row with one cell for each spec."
   [specs row-prefix row-suffix]
-  (-> (map util/first* specs)
+  (-> (map (comp util/strip-core
+                 util/first*) specs)
       (html/row nil)
       (html/decorate-row row-prefix row-suffix)
       vector))
@@ -27,7 +28,7 @@
 (defn- specs->col
   "Like `specs-row`, but one row for each spec with a single cell."
   [specs row-prefix row-suffix]
-  (html/col specs nil))
+  (html/col (map util/strip-core specs) nil))
 
 (defn- table->graphviz-label
   "Generate the (slightly modified) html to be used as a label value for a
@@ -37,10 +38,11 @@
 
 (defn- specs->graphviz-table-node
   "Turn the spec parts into row data for rendering a graphviz table."
-  [specs spec-keyword node-name vertical? {:keys [table-opts ellipses-row
-                                                  title-suffix row-prefix
-                                                  row-suffix]}]
-  (let [title (str (or spec-keyword " ") " " (or title-suffix " "))
+  [specs spec-keyword node-name {:keys [table-opts ellipses-row title-suffix
+                                        row-prefix row-suffix vertical?
+                                        hide-title?]}]
+  (let [title (when-not hide-title?
+                (str (or spec-keyword " ") " " (or title-suffix " ")))
 
         ;; Create html rows from the specs, and format them.
         rows ((if vertical? specs->col specs->rows)
@@ -109,8 +111,7 @@
                      types-and-kws
                      spec-keyword
                      node-name
-                     true
-                     nil)
+                     {:vertical? true})
 
         edges (map-indexed
                 ;; Similarly, when we introduce h2-colored formatting above,
@@ -186,13 +187,16 @@
 
   `spec-keyword` the registered keyword of the spec, if it has one.
 
+  `recursive?` if true, generate the nodes for the spec recursively.
+
   `table-opts` optionally includes :table-opts, :ellipses-row, :title-suffix,
-               :row-prefix, :row-suffix"
-  [spec-parts spec-keyword & table-opts]
+               :row-prefix, :row-suffix :vertica? :hide-title?"
+  [spec-parts spec-keyword recursive? & table-opts]
   (let [node-name (or (clean-name spec-keyword) (next-name))
         table-node (specs->graphviz-table-node
-                     spec-parts spec-keyword node-name false table-opts)
-        nodes (mapcat (fn [spec i]
+                     spec-parts spec-keyword node-name table-opts)
+        nodes (when recursive?
+                (mapcat (fn [spec i]
                         (let [port (graphviz/port i)]
                           (cond
                             ;; For a literal, generate the nodes & connection
@@ -216,7 +220,7 @@
                             ;; display it using the table.
                             )))
                       spec-parts
-                      (range))]
+                      (range)))]
     (conj nodes table-node)))
 
 (defmethod spec->graphviz-elements* 'clojure.spec/every
@@ -225,20 +229,24 @@
     ;; TODO - factor this!
     (tabular-spec->graphviz-elements* [(second spec-form)]
                           spec-keyword
-                          :table-opts {::cellspacing 6}
+                          true
+                          :table-opts {:cellspacing 0}
                           :ellipses-row true
                           :title-suffix "(...)")
     (tabular-spec->graphviz-elements* (rest (second spec-form))
                           spec-keyword
-                          :table-opts {::cellspacing 6}
+                          true
+                          :table-opts {:cellspacing 0}
                           :ellipses-row true
                           :title-suffix "{...}")))
 
 (defmethod spec->graphviz-elements* 'clojure.spec/tuple
   [spec-form spec-keyword]
-  (tabular-spec->graphviz-elements* (rest spec-form) spec-keyword
-                        :row-suffix " )"
-                        :row-prefix "( "))
+  (tabular-spec->graphviz-elements* (rest spec-form)
+                                    spec-keyword
+                                    true
+                                    :row-suffix " )"
+                                    :row-prefix "( "))
 
 (defmethod spec->graphviz-elements* 'clojure.spec/nilable
   [spec-form spec-keyword]
@@ -272,29 +280,40 @@
   [spec-form spec-keyword]
   nil)
 
-(defn set-spec->graphviz-elements
-  [spec-form spec-keyword]
-  (with-name-graphviz-node
-    spec-keyword
-    [{::graphviz/name (next-name)
-      ::graphviz/label (->> spec-form
-                            (string/join "\\n")
-                            (format "#{%s}"))
-      ::graphviz/shape "oval"}]))
-
 (defn other-spec->graphviz-elements
   [spec-form spec-keyword]
   (with-name-graphviz-node
     spec-keyword
     [{::graphviz/name (next-name)
-      ::graphviz/label (print-str spec-form)
+      ::graphviz/label (-> spec-form
+                           pr-str
+                           util/strip-core)
       ::graphviz/shape "oval"}]))
+
+(defn coll-spec->graphviz-elements
+  [first-row spec-form spec-keyword]
+  (with-name-graphviz-node
+    spec-keyword
+    (tabular-spec->graphviz-elements*
+      (cons first-row (map pr-str spec-form))
+      nil
+      false
+      :table-opts {:cellspacing 0
+                   :cellborder 0
+                   :border 1}
+      :vertical? true
+      :hide-title? true)))
 
 (defmethod spec->graphviz-elements* :default
   [spec-form spec-keyword]
-  ((if (set? spec-form)
-     set-spec->graphviz-elements
-     other-spec->graphviz-elements) spec-form spec-keyword))
+  ((cond (vector? spec-form)
+         (partial coll-spec->graphviz-elements "[...]")
+         (set? spec-form)
+         (partial coll-spec->graphviz-elements "#{...}")
+         (map? spec-form)
+         (partial coll-spec->graphviz-elements "{...}")
+         :else
+         other-spec->graphviz-elements) spec-form spec-keyword))
 
 (defn- spec->graphviz-elements
   "Return a sequence of graphviz elements used to render the spec."

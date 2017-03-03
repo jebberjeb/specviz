@@ -13,6 +13,10 @@
 
 (s/def ::shape #{::square ::circle ::triangle})
 
+(s/def ::test-map {:foo 1
+                   :bar 2
+                   :baz 3})
+
 (s/def ::test-or
   (s/or :foo keyword?
         :bar ::eid
