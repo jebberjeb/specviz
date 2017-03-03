@@ -9,7 +9,7 @@ This project is not yet on Clojars.
 ### Leiningen dependency
 
 ```
-[specviz "0.1.0-SNAPSHOT"]
+[specviz "0.2.0"]
 ```
 
 ## Usage
@@ -44,6 +44,14 @@ The following spec types are supported.
 * tuple
 
 Regex specs are currently in development.
+
+## Change Log
+
+### 0.2.0
+
+* Fix SOE due to recursive specs
+* Render `s/nilable?` using `s/or :nil nil? :not-nil ...`
+* Render map, set, vector literals using a table
 
 ## License
 
