@@ -21,19 +21,19 @@
 ;; *** Graphviz specs ***
 
 (s/def ::shape #{"record" "box" "oval" "plaintext" "circle" "diamond"
-                 "trapezium" "square" "folder"})
+                 "trapezium" "square" "folder" "doublecircle" "point"})
 (s/def ::connection (s/keys :req [::to ::from]
                             :opt [::label ::line-style ::constraint
                                   ::line-direction]))
-(s/def ::node (s/keys :req [::name ::label]
-                      :opt [::shape ::fillcolor ::style
+(s/def ::node (s/keys :req [::name]
+                      :opt [::label ::shape ::fillcolor ::style
                             ::height ::width]))
 (s/def ::drawable (s/or :connection ::connection
                         :node ::node))
 (s/def ::line-style #{:dotted :solid})
 (s/def ::line-direction #{:none :both :forward :back})
 
-;; *** graphviz data -> dot ***
+; *** graphviz data -> dot ***
 
 ;; `render-graphviz` generates the graphviz dot string for a graphviz element
 (defmulti render-graphviz first)
@@ -58,7 +58,8 @@
 
 (defmethod render-graphviz-node :default
   [node]
-  (render-graphviz-node* (update node ::label #(format "\"%s\"" %))))
+  (render-graphviz-node* (update node ::label #(format "\"%s\""
+                                                       (or % (::name node))))))
 
 (defmethod render-graphviz :node
   [[_ node]]
