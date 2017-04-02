@@ -4,8 +4,6 @@ Generate [Graphviz](www.graphviz.org) images from [clojure.spec](https://clojure
 
 ## Release
 
-This project is not yet on Clojars.
-
 ### Leiningen dependency
 
 ```
