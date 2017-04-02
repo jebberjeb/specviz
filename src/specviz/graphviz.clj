@@ -16,7 +16,8 @@
     [clojure.spec :as s]
     [clojure.string :as string]
     [specviz.spec :as spec]
-    [specviz.util :as util]))
+    [specviz.util :as util]
+    [viz.core :as viz]))
 
 ;; *** Graphviz specs ***
 
@@ -149,8 +150,8 @@
   [dot-string filename]
   (let [dot-string' (str "digraph {\nrankdir=LR;\n" dot-string "\n}")]
     (spit (str filename ".dot") (util/add-line-no dot-string'))
-    (sh/sh "dot" "-Tpng" (str "-o" filename ".png")
-           :in dot-string')))
+    (spit (str filename ".svg")
+          (viz/image (string/replace dot-string' "\n" "")))))
 
 ;; TODO Move these.
 (def h1-color "#CCCCCC")

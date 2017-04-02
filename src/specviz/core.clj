@@ -373,5 +373,5 @@
     (graphviz/generate-image! dot filename)))
 
 (comment
-  (diagram :specviz.graphviz/drawable nil "bar")
-  (diagram 'specviz.example nil "foo"))
+  (specviz.core/diagram :specviz.graphviz/drawable nil "bar")
+  (specviz.core/diagram 'specviz.example nil "foo1"))
