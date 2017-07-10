@@ -1,7 +1,7 @@
 (ns specviz.spec
   "Analyze clojure.spec specs."
   (:require
-    [clojure.spec :as s]))
+    [clojure.spec.alpha :as s]))
 
 (defn registered?
   "Returns true if `x` is the keyword of a registered spec?"
