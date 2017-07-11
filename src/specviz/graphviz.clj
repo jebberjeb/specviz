@@ -13,7 +13,7 @@
   "
   (:require
     [clojure.java.shell :as sh]
-    [clojure.spec :as s]
+    [clojure.spec.alpha :as s]
     [clojure.string :as string]
     [specviz.spec :as spec]
     [specviz.util :as util]

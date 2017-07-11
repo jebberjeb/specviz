@@ -1,7 +1,7 @@
 (ns specviz.example
   "A place for example specs."
   (:require
-    [clojure.spec :as s]))
+    [clojure.spec.alpha :as s]))
 
 (s/def ::ident keyword?)
 (s/def ::eid int?)

@@ -1,7 +1,7 @@
 (ns specviz.util
   "General utilities."
   (:require
-    [clojure.spec :as s]
+    [clojure.spec.alpha :as s]
     [clojure.string :as string]))
 
 (defn add-line-no

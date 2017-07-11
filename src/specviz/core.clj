@@ -2,7 +2,7 @@
   "Generate diagrams from specs."
   (:require
     [clojure.java.shell :as sh]
-    [clojure.spec :as s]
+    [clojure.spec.alpha :as s]
     [clojure.string :as string]
     [specviz.html :as html]
     [specviz.graphviz

@@ -4,6 +4,6 @@
   :license {:name "MIT"
             :url ""}
   :dependencies [[hiccup "1.0.5"]
-                 [org.clojure/clojure "1.9.0-alpha12"]
+                 [org.clojure/clojure "1.9.0-alpha17"]
                  [org.clojure/test.check "0.9.0"]
                  [viz-cljc "0.1.0"]])
