@@ -7,7 +7,7 @@ Generate [Graphviz](www.graphviz.org) images from [clojure.spec](https://clojure
 ### Leiningen dependency
 
 ```
-[specviz "0.2.1"]
+[specviz "0.2.3"]
 ```
 
 ## Usage

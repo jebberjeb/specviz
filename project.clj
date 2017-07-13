@@ -1,4 +1,4 @@
-(defproject specviz "0.2.2"
+(defproject specviz "0.2.3"
   :description "Generate Graphviz images from Clojure specs"
   :url "https://github.com/jebberjeb/specviz"
   :license {:name "MIT"
