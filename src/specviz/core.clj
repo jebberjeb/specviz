@@ -1,13 +1,12 @@
 (ns specviz.core
   "Generate diagrams from specs."
   (:require
-    [clojure.java.shell :as sh]
     [clojure.spec.alpha :as s]
     [clojure.string :as string]
-    [specviz.html :as html]
+    [specviz.html :as html :refer [h1-color h2-color]]
     [specviz.graphviz
      :as graphviz
-     :refer [next-name clean-name render-graphviz h1-color h2-color]]
+     :refer [next-name clean-name render-graphviz]]
     [specviz.spec :as spec]
     [specviz.util :as util]))
 
@@ -118,7 +117,7 @@
                 ;; we may need to adjust this so that port indexes line up.
                 (fn [i kw] (when (spec/registered? kw)
                              (graphviz/connect :from table-node
-                                               :from-port (graphviz/port i)
+                                               :from-port (html/port i)
                                                :to (clean-name kw))))
                 types-and-kws)]
     (conj edges table-node)))
@@ -197,7 +196,7 @@
                      spec-parts spec-keyword node-name table-opts)
         nodes (when recursive?
                 (mapcat (fn [spec i]
-                        (let [port (graphviz/port i)]
+                        (let [port (html/port i)]
                           (cond
                             ;; For a literal, generate the nodes & connection
                             ;; node.

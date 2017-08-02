@@ -2,8 +2,16 @@
   "Functions to work with hiccup data."
   (:require
     [clojure.string :as string]
-    [hiccup.core :as html]
-    [specviz.graphviz :refer [h1-color port]]))
+    #?(:clj [hiccup.core :as html]
+       :cljs [crate.core :as html])))
+
+(def h1-color "#CCCCCC")
+(def h2-color "#EEEEEE")
+
+(defn port
+  "Returns a string representing the 'port' id, for a cell in a graphviz table."
+  [index]
+  (str "f" index))
 
 (defn decorate-row
   "Adds the prefix to the value of the row's first cell, and the suffix to

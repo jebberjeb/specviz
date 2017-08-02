@@ -12,7 +12,6 @@
     - a function to render a graphviz dot string into a png image
   "
   (:require
-    [clojure.java.shell :as sh]
     [clojure.spec.alpha :as s]
     [clojure.string :as string]
     [specviz.spec :as spec]
@@ -40,6 +39,14 @@
 (defmulti render-graphviz first)
 
 (defmulti render-graphviz-node ::shape)
+
+#?(:cljs
+   (defn format
+     [format-str & args]
+     (reduce (fn [string arg]
+               (string/replace-first string "%s" arg))
+             format-str
+             args)))
 
 (defn render-graphviz-node*
   [{:keys [::name ::shape ::label ::style ::fillcolor ::height ::width]}]
@@ -96,7 +103,7 @@
 (defn next-name
   "Returns a unique name for use with a graphviz node."
   []
-  (format "node%s" (next-id)))
+  (str "node" (next-id)))
 
 (defn clean-name
   "Turn the qualified keyword into a graphviz friendly name"
@@ -108,11 +115,6 @@
         (string/replace ":" "")
         (string/replace "-" "")
         (string/replace "?" ""))))
-
-(defn port
-  "Returns a string representing the 'port' id, for a cell in a graphviz table."
-  [index]
-  (format "f%s" index))
 
 (defn get-root-name
   "Gets the name of the tree's root graphviz node."
@@ -149,13 +151,15 @@
   `dot` executable binary."
   [dot-string filename]
   (let [dot-string' (str "digraph {\nrankdir=LR;\n" dot-string "\n}")]
-    (spit (str filename ".dot") (util/add-line-no dot-string'))
-    (spit (str filename ".svg")
-          (viz/image (string/replace dot-string' "\n" "")))))
 
-;; TODO Move these.
-(def h1-color "#CCCCCC")
-(def h2-color "#EEEEEE")
+    #?(:clj
+       (do
+         (spit (str filename ".dot") (util/add-line-no dot-string'))
+         (spit (str filename ".svg")
+               (viz/image (string/replace dot-string' "\n" "")))))
+
+    #?(:cljs
+       (viz/image (string/replace dot-string' "\n" "")))))
 
 (comment
   (let [data [{::name "foo"
