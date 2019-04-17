@@ -1,6 +1,6 @@
 # specviz
 
-Generate [Graphviz](www.graphviz.org) images from [clojure.spec](https://clojure.org/about/spec).
+Generate [Graphviz](https://www.graphviz.org) images from [clojure.spec](https://clojure.org/about/spec).
 
 ## Release
 
