@@ -1,0 +1,6 @@
+{:paths ["src"]
+ :deps {hiccup/hiccup {:mvn/version "1.0.5"}
+        crate/crate {:mvn/version "0.2.4"}
+        viz-cljc/viz-cljc {:mvn/version "0.1.3" :exclusions [org.clojure/clojurescript org.clojure/clojure]}}
+
+ :aliases {:dev {:extra-deps {org.clojure/tools.trace {:mvn/version "0.7.10"}}}}}
