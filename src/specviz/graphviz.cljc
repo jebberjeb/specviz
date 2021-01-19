@@ -92,7 +92,7 @@
        (map render-graphviz)
        (apply str)))
 
-;; *** graphviz utility funcitons ***
+;; *** graphviz utility functions ***
 
 (let [id (atom 0)]
   (defn- next-id
